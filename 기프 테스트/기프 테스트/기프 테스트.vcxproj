@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{35DDDDB2-B1D1-48F6-AFAB-8EA9F9F032CE}</ProjectGuid>
+    <ProjectGuid>{2E1F03C6-D66F-40B8-A0A7-3447E458FF3F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>CampusProgram</RootNamespace>
+    <RootNamespace>기프테스트</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -146,7 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CP.c" />
+    <ClCompile Include="test.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
