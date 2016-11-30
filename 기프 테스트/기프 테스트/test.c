@@ -1,479 +1,519 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <Windows.h>
-#include <process.h>
-#pragma warning (disable:4996)
-void User(); //사용자 화면
-void User_reserve(); //사용자 구장예약
-void User_check(); //사용자 구장예약조회
-				   //void User_notify(); //사용자 공지사항
-void Manager(); // 관리자 화면
-void Manager_check(); //관리자 구장예약조회
-void init();                 //void Manager_User_check();
-void Manager_notify(); //관리자 공지사항
-UINT __stdcall StartTimer(LPVOID lpVoid);
-
-typedef struct pro
-{
-	char Name[20];
-	char Phone_num[13];
-	char Club[50];
-	int Ground;
-	int StartTime;
-	int EndTime;
-	char content[200];
-	char title[30];
-	struct pro *next;
-	struct pro *prev;
-}PRO;
-
-PRO *add = NULL;
-PRO *head = NULL;
-PRO *p = NULL;
-PRO *follow = NULL;
-PRO *tail = NULL;
-PRO *noti = NULL;
-int input = 0;
-int choice = 0;
-char g_print[20];
-
-void init()
-{
-	head = (PRO*)malloc(sizeof(PRO));//시작
-	tail = (PRO*)malloc(sizeof(PRO));//마지막
-	head->next = tail;
-	tail->prev = head;
-}
-
-int second = 0;  // 초
-int minitue = 0; // 분
-int hour = 0;    // 시
-
-void main()
-{
-	unsigned int id;
-	(HANDLE)_beginthreadex(0, 0, StartTimer, NULL, 0, &id);
-
-	system("cls");
-	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                          선문대학교                          ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                    교내 구장 예약 프로그램                   ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃             1. 관리자 모드        2.사용자 모드              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                           0. 종료                            ┃\n");
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-	while (1) {
-		scanf("%d", &choice);
-		if (choice == 1)
-		{
-			Manager();
-		}
-		if (choice == 2)
-		{
-			User();
-		}
-		if (choice == 0)
-		{
-			system("cls");
-			printf("프로그램을 종료합니다.\n");
-		}
-	}
-	CloseHandle(StartTimer);
-}
-
-void Manager()
-{
-	system("cls");
-	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [1] 구장 예약 현황 조회 및 수정 삭제                      ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [2] 공지 등록 및 관리                                     ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [3] 뒤로가기                                              ┃\n");
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-	scanf("%d", &input);
-	switch (input)
-	{
-	case 1:
-		Manager_check();
-		break;
-	case 2:
-		Manager_notify();
-		break;
-	case 3:
-		main();
-		break;
-	}
-
-}
-void Manager_notify()
-{
-	system("cls");
-	int count = 0;
-	PRO *move = NULL;//움직일 포인터변수
-	PRO *link = NULL;//맨 앞을 가르킬 포인터 변수
-	PRO *rear = NULL;//뒤따라올 포인터변수
-	char del_title[30];
-	while (1)
-	{
-
-		system("cls");
-		printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		printf("┃    [1] 공지사항 등록                                         ┃\n");
-		printf("┃                                                              ┃\n");
-		printf("┃    [2] 공지사항 수정                                         ┃\n");
-		printf("┃                                                              ┃\n");
-		printf("┃    [3] 공지사항 목록                                         ┃\n");
-		printf("┃                                                              ┃\n");
-		printf("┃    [4] 공지사항 삭제                                         ┃\n");
-		printf("┃                                                              ┃\n");
-		printf("┃    [5] 뒤로가기                                              ┃\n");
-		printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-		scanf("%d", &input);
-		switch (input)
-		{
-		case 1:
-		{
-			init();
-			noti = (PRO*)malloc(sizeof(PRO));
-			printf("공지사항 제목 : ");
-			scanf("%s", &noti->title);
-			printf("내용 : ");
-			scanf("%s", &noti->content);
-			tail->prev->next = noti; //맨 뒤에 noti연결
-			noti->prev = tail->prev;
-
-			noti->next = tail;
-			tail->prev = noti;
-
-			break;
-		}
-		case 2:
-		{
-			printf("수정할 공지사항 제목 : ");
-			scanf("%s", &del_title);
-			move = rear = link;
-			while (move != NULL)
-			{
-				if (strcmp(del_title, move->title) == 0)
-				{
-					printf("수정할 내용 : ");
-					scanf("%s", &move->content);
-					printf("공지 수정이 완료되었습니다.\n");
-					break;
-				}
-				printf("없음.\n");
-				move = move->next;
-			}
-			break;
-		}
-
-		case 4:
-		{
-			PRO *del;
-			printf("삭제할 공지사항 제목 : ");
-			scanf("%s", &del_title);
-			move = head->next;
-			while (move != NULL)
-			{
-				if (strcmp(del_title, move->title) == 0)
-				{
-					del = move;
-					move->prev->next = move->next;
-					move->next->prev = move->prev;
-					free(del);
-					printf("삭제완료.");
-					Sleep(2000);
-					break;
-				}
-			}
-			if (move == NULL)
-			{
-				printf("없음.\n");
-				Sleep(2000);
-				break;
-			}
-			if (link == move) //첫 번째 값을 삭제할 때
-				link = move->next;
-			else if (move->next == NULL) // 끝 값을 삭제할 때
-				rear->next = NULL;
-			else //중간 값을 삭제할 때
-				rear->next = move->next;
-
-			break;
-		}
-		case 3:
-		{
-			system("cls");
-			printf("                      <  공 지 사 항 >                            \n");
-			printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-			move = head->next;
-			while (move != tail)
-			{
-				printf(" 공지 : %10s                                              \n", move->title);
-				printf(" 내용    : %10s                                               \n", move->content);
-				move = move->next;
-			}
-			printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-			Sleep(2000);
-			break;
-		}
-		case 5:
-			Manager();
-			break;
-		default:
-			printf("잘못입력하셨습니다.\n");
-			break;
-		}
-	}
-}
-void Manager_check()
-{
-	system("cls");
-
-	char del_re[30];
-	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [1] 예약자 정보 조회 및 구장 예약 현황                    ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [2] 구장 예약 삭제                                        ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [3] 뒤로가기                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-
-	scanf("%d", &input);
-
-	switch (input)
-	{
-	case 1:
-		system("cls");
-		printf("                      <  예 약 현 황 >                              \n");
-		printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		for (p = head; p != NULL; p = p->next)
-		{
-			if (p->Ground == 1)
-				strcpy(g_print, "풋살A");
-			else if (p->Ground == 2)
-				strcpy(g_print, "풋살B");
-			else if (p->Ground == 3)
-				strcpy(g_print, "축구장");
-			else
-				strcpy(g_print, "야구장");
-			printf("이름 : %s  휴대전화 :%s  동아리명 : %s \n  구장정보 : %s  예약시간 : %d,%d \n", p->Name, p->Phone_num, p->Club, g_print, p->StartTime, p->EndTime);
-		}
-		printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-		getchar();
-		system("cls");
-		break;
-	case 2:
-		system("cls");
-		printf("동아리명 입력 : "); //동명이인이 있을 수 있으므로 동아리명으로 조회
-		scanf("%s", &del_re);
-		p = follow = head; //맨 앞으로 포인터 변수를 움직인다.
-		while ((p != NULL) && (strcmp(del_re, p->title) != 0))
-		{
-			follow = p;
-			p = p->next;
-		}
-		if (p == NULL)
-		{
-			printf("정보 없음.\n");
-			getchar();
-			break;
-		}
-		if (head == p) //첫 번째 값을 삭제할 때
-			head = p->next;
-		else if (p->next == NULL) // 끝 값을 삭제할 때
-			follow->next = NULL;
-		else //중간 값을 삭제할 때
-			follow->next = p->next;
-		printf("삭제 완료.");
-		getchar();
-		break;
-	case 3:
-		Manager_check();
-		break;
-	}
-}
-
-void User()
-
-{
-	system("cls");
-	int unum = 0;
-	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [1] 구장 예약 및 취소                                     ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [2] 예약 현황                                             ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [3] 공지사항                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃    [4] 뒤로가기                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-
-
-	scanf("%d", &unum);
-	getchar();
-	system("cls");
-	switch (unum)
-	{
-	case 1:
-		User_reserve();
-		break;
-	case 2:
-		User_check();
-		break;
-	case 3:
-		Manager_notify();
-		break;
-	case 4:
-		main();
-		break;
-	default:
-		printf("잘못 입력하셨습니다.\n");
-	}
-}
-
-void User_reserve()
-{
-	add = (PRO*)malloc(sizeof(PRO));
-	system("cls");
-	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃      [1] 풋살 A                          [2] 풋살 B          ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃      [3] 축구장                          [4] 야구장          ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-
-	scanf("%d", &add->Ground);
-	getchar();
-	system("cls");
-
-	printf("이름 : ");
-	scanf("%s", &add->Name);
-	printf("전화번호 : ");
-	scanf("%s", &add->Phone_num);
-	printf("동아리명 : ");
-	scanf("%s", &add->Club);
-	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	printf("┃                                                              ┃\n");
-	printf("┃     *    사용시간 AM00시 기준 24시로 입력해 주세요     *     ┃\n");
-	printf("┃     *            1시간씩 예약 해주세요                 *     ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("      시작시간 :  "); scanf("%d", &add->StartTime); printf("시 \n");
-	printf("┃                                                              ┃\n");
-	printf("      종료시간 :  "); scanf("%d", &add->EndTime); printf("시 \n");
-	printf("┃                                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┃                                                              ┃\n");
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-	add->next = NULL;
-
-	getchar();
-
-	if (head == NULL)
-		head = add;// 만약 head값이 NULL값일 때 맨 앞에 값을 넣어준다
-				   //else if()
-				   //{
-				   //   사용자가 입력한 예약 시간 정보 중복되는지 확인.
-				   //}
-	else
-	{
-		p = head;// head가 가르키는 주소값을 p도 동일하게 가르킨다
-		while (p->next != NULL)
-		{
-			if ((add->StartTime == p->StartTime || add->EndTime == p->EndTime) && add->Ground == p->Ground)
-			{
-				printf("이미 예약된 구장입니다. 다시 예약해주세요.\n");
-				getchar();
-				User();
-			}
-			else
-				p = p->next;
-		}
-		p->next = add;
-	}
-	printf("예약이 완료되었습니다.\n");
-	getchar(); //화면을 깨끗히 지우기 전 사용자에게 2초간 보여질수 있도록 딜레이 한다.
-	system("cls");
-	User();
-
-}
-
-void User_check()
-{
-	system("cls");
-	printf("                      <  예 약 현 황 >                              \n");
-	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	for (p = head; p != NULL; p = p->next)
-	{
-		if (p->Ground == 1)
-			strcpy(g_print, "풋살A");
-		else if (p->Ground == 2)
-			strcpy(g_print, "풋살B");
-		else if (p->Ground == 3)
-			strcpy(g_print, "축구장");
-		else
-			strcpy(g_print, "야구장");
-		printf("이름 : %s   동아리명 : %s  구장정보 : %s   예약시간 : %d,%d\n", p->Name, p->Club, g_print, p->StartTime, p->EndTime);
-	}
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-	getchar(); //화면을 깨끗히 지우기 전 사용자에게 3초간 보여질수 있도록 딜레이 한다.
-	User();
-
-}
-UINT __stdcall StartTimer(LPVOID lpVoid)
-{
-	// 시스템 시작 시 구동 될 시간함수
-
-	while (1) {
-
-		Sleep(1000);  // 딜레이 함수  0.1 초
-		second++;
-
-		if (second == 60)  // 60초 = 1분
-		{
-			minitue++;
-			second = 0;
-		}
-
-		if (minitue == 60) // 60분 = 1시간
-		{
-			hour++;
-			minitue = 0;
-
-		}
-		if (hour == 24) return 0;
-		printf("현재 시간 : %d시 %d분 %d초\n", hour, minitue, second);
-	}
-}
-//void User_notify()
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <Windows.h>
+//#include <process.h>
+//
+//#pragma warning (disable:4996)
+//
+//void User(); //사용자 화면
+//void User_reserve(); //사용자 구장예약
+//void User_check(); //사용자 구장예약조회
+//				   //void User_notify(); //사용자 공지사항
+//void Manager(); // 관리자 화면
+//void Manager_check(); //관리자 구장예약조회
+//void init();                 //void Manager_User_check();
+//void Manager_notify(); //관리자 공지사항
+//int gotoxy(int x, int y);
+//UINT __stdcall StartTimer(LPVOID lpVoid);
+//
+//typedef struct pro
 //{
-//   PRO *move = NULL;//움직일 포인터변수
-//   PRO *link = NULL;//맨 앞을 가르킬 포인터 변수
-//   PRO *rear = NULL;//뒤따라올 포인터변수
-//   system("cls");
-//   printf("                      <  공 지 사 항 >                            \n");
-//   printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-//   for (move = link; move != NULL; move = move->next)
-//   {
-//      printf(" 공지 : %10s                                              \n", move->title);
-//      printf(" 내용    : %10s                                               \n", move->content);
-//   }
-//   printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
-//   Sleep(3000);
-//   User();
+//	char Name[20];
+//	char Phone_num[13];
+//	char Club[50];
+//	int Ground;
+//	int StartTime;
+//	int EndTime;
+//	char content[200];
+//	char title[30];
+//	struct pro *next;
+//	struct pro *prev;
+//}PRO;
+//PRO *add = NULL;
+//PRO *head = NULL;
+//PRO *p = NULL;
+//PRO *follow = NULL;
+//PRO *tail = NULL;
+//PRO *noti = NULL;
+//char g_print[20];
+//
+//void init()
+//{
+//	head = (PRO*)malloc(sizeof(PRO));//시작
+//	tail = (PRO*)malloc(sizeof(PRO));//마지막
+//	head->next = tail;
+//	tail->prev = head;
 //}
+//
+//int second = 0;  // 초
+//int minitue = 0; // 분
+//int hour = 0;    // 시
+//HANDLE consoleHandler = GetStdHandle(STD_OUTPUT_HANDLE);
+//
+//void main()
+//{
+//	unsigned int id;
+//	(HANDLE)_beginthreadex(0, 0, StartTimer, NULL, 0, &id);
+//
+//	while (1) {
+//
+//		int choice = 0;
+//
+//		system("cls");
+//		printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃                          선문대학교                          ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃                    교내 구장 예약 프로그램                   ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃             1. 관리자 모드        2.사용자 모드              ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃                           0. 종료                            ┃\n");
+//		printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//
+//		scanf("%d", &choice);
+//
+//		if (choice == 1)
+//		{
+//			Manager(); continue;
+//		}
+//		if (choice == 2)
+//		{
+//
+//			User(); continue;
+//		}
+//		if (choice == 0)
+//		{
+//			system("cls");
+//			printf("프로그램을 종료합니다.\n");
+//			return;
+//		}
+//	}
+//	CloseHandle(StartTimer);
+//}
+//
+//void Manager()
+//{
+//	while (1)
+//	{
+//		system("cls");
+//		printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [1] 구장 예약 현황 조회 및 수정 삭제                      ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [2] 공지 등록 및 관리                                     ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [3] 뒤로가기                                              ┃\n");
+//		printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//
+//		int input = 0;
+//		scanf(" %d", &input);
+//		switch (input)
+//		{
+//		case 1:
+//			Manager_check();
+//			continue;
+//		case 2:
+//			Manager_notify();
+//			continue;
+//		case 3:
+//			return;
+//		default: printf("잘못입력하셨습니다.\n");
+//		}
+//	}
+//
+//}
+//void Manager_notify()
+//{
+//	system("cls");
+//	int count = 0;
+//	PRO *move = NULL;//움직일 포인터변수
+//	PRO *link = NULL;//맨 앞을 가르킬 포인터 변수
+//	PRO *rear = NULL;//뒤따라올 포인터변수
+//	char del_title[30];
+//	while (1)
+//	{
+//		system("cls");
+//		printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//		printf("┃    [1] 공지사항 등록                                         ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [2] 공지사항 수정                                         ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [3] 공지사항 목록                                         ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [4] 공지사항 삭제                                         ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [5] 뒤로가기                                              ┃\n");
+//		printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//
+//		int input = 0;
+//		scanf("%d", &input);
+//		switch (input)
+//		{
+//		case 1:
+//		{
+//			init();
+//			noti = (PRO*)malloc(sizeof(PRO));
+//			printf("공지사항 제목 : ");
+//			scanf("%s", &noti->title);
+//			printf("내용 : ");
+//			scanf("%s", &noti->content);
+//			tail->prev->next = noti; //맨 뒤에 noti연결
+//			noti->prev = tail->prev;
+//
+//			noti->next = tail;
+//			tail->prev = noti;
+//
+//			continue;
+//		}
+//		case 2:
+//		{
+//			printf("수정할 공지사항 제목 : ");
+//			scanf("%s", &del_title);
+//			move = rear = link;
+//			while (move != NULL)
+//			{
+//				if (strcmp(del_title, move->title) == 0)
+//				{
+//					printf("수정할 내용 : ");
+//					scanf("%s", &move->content);
+//					printf("공지 수정이 완료되었습니다.\n");
+//					continue;
+//				}
+//				else
+//				{
+//					printf("없음.\n");
+//					move = move->next;
+//				}
+//			}
+//			continue;
+//		}
+//
+//		case 4:
+//		{
+//			PRO *del;
+//			printf("삭제할 공지사항 제목 : ");
+//			scanf("%s", &del_title);
+//			move = head->next;
+//			while (move != NULL)
+//			{
+//				if (strcmp(del_title, move->title) == 0)
+//				{
+//					del = move;
+//					move->prev->next = move->next;
+//					move->next->prev = move->prev;
+//					free(del);
+//					printf("삭제완료.");
+//					Sleep(2000);
+//					continue;
+//				}
+//			}
+//			if (move == NULL)
+//			{
+//				printf("없음.\n");
+//				Sleep(2000);
+//				continue;
+//			}
+//			if (link == move) //첫 번째 값을 삭제할 때
+//				link = move->next;
+//			else if (move->next == NULL) // 끝 값을 삭제할 때
+//				rear->next = NULL;
+//			else //중간 값을 삭제할 때
+//				rear->next = move->next;
+//
+//			continue;
+//		}
+//		case 3:
+//		{
+//			system("cls");
+//			printf("                      <  공 지 사 항 >                            \n");
+//			printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//			move = head->next;
+//			while (move != tail)
+//			{
+//				printf(" 공지 : %10s                                              \n", move->title);
+//				printf(" 내용    : %10s                                               \n", move->content);
+//				move = move->next;
+//			}
+//			printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//			Sleep(2000);
+//			continue;
+//		}
+//		case 5:
+//			return;
+//		default:
+//			printf("잘못입력하셨습니다.\n");
+//			break;
+//		}
+//	}
+//}
+//void Manager_check()
+//{
+//	while (1)
+//	{
+//		int input = 0;
+//
+//		system("cls");
+//
+//		char del_re[30];
+//		printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [1] 예약자 정보 조회 및 구장 예약 현황                    ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [2] 구장 예약 삭제                                        ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [3] 뒤로가기                                              ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//
+//		scanf("%d", &input);
+//
+//		switch (input)
+//		{
+//		case 1:
+//			system("cls");
+//			printf("                      <  예 약 현 황 >                              \n");
+//			printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//			for (p = head; p != NULL; p = p->next)
+//			{
+//				if (p->Ground == 1)
+//					strcpy(g_print, "풋살A");
+//				else if (p->Ground == 2)
+//					strcpy(g_print, "풋살B");
+//				else if (p->Ground == 3)
+//					strcpy(g_print, "축구장");
+//				else
+//					strcpy(g_print, "야구장");
+//				printf("이름 : %s  휴대전화 :%s  동아리명 : %s \n  구장정보 : %s  예약시간 : %d,%d \n", p->Name, p->Phone_num, p->Club, g_print, p->StartTime, p->EndTime);
+//			}
+//			printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//			getchar();
+//			system("pause");
+//			system("cls");
+//			break;
+//		case 2:
+//			system("cls");
+//			printf("동아리명 입력 : "); //동명이인이 있을 수 있으므로 동아리명으로 조회
+//			scanf("%s", &del_re);
+//			p = follow = head; //맨 앞으로 포인터 변수를 움직인다.
+//			while ((p != NULL) && (strcmp(del_re, p->title) != 0))
+//			{
+//				follow = p;
+//				p = p->next;
+//			}
+//			if (p == NULL)
+//			{
+//				printf("정보 없음.\n");
+//				getchar();
+//				break;
+//			}
+//			if (head == p) //첫 번째 값을 삭제할 때
+//				head = p->next;
+//			else if (p->next == NULL) // 끝 값을 삭제할 때
+//				follow->next = NULL;
+//			else //중간 값을 삭제할 때
+//				follow->next = p->next;
+//			printf("삭제 완료.");
+//			getchar();
+//			break;
+//		case 3:
+//			return;
+//		}
+//	}
+//}
+//
+//void User()
+//
+//{
+//	while (1)
+//	{
+//
+//		system("cls");
+//		int unum = 0;
+//		printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [1] 구장 예약 및 취소                                     ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [2] 예약 현황                                             ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [3] 공지사항                                              ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┃    [4] 뒤로가기                                              ┃\n");
+//		printf("┃                                                              ┃\n");
+//		printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//
+//
+//		scanf("%d", &unum);
+//		getchar();
+//		system("cls");
+//		switch (unum)
+//		{
+//		case 1:
+//			User_reserve();
+//			continue;
+//		case 2:
+//			User_check();
+//			continue;
+//		case 3:
+//			Manager_notify();
+//			continue;
+//		case 4:
+//			return;
+//		default:
+//			printf("잘못 입력하셨습니다.\n");
+//		}
+//	}
+//}
+//
+//void User_reserve()
+//{
+//	add = (PRO*)malloc(sizeof(PRO));
+//	system("cls");
+//	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃      [1] 풋살 A                          [2] 풋살 B          ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃      [3] 축구장                          [4] 야구장          ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//
+//	scanf("%d", &add->Ground);
+//	getchar();
+//	system("cls");
+//
+//	printf("이름 : ");
+//	scanf("%s", &add->Name);
+//	printf("전화번호 : ");
+//	scanf("%s", &add->Phone_num);
+//	printf("동아리명 : ");
+//	scanf("%s", &add->Club);
+//	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃     *    사용시간 AM00시 기준 24시로 입력해 주세요     *     ┃\n");
+//	printf("┃     *            1시간씩 예약 해주세요                 *     ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                   시                         ┃\n");
+//	gotoxy(20, 8); printf("시작시간 :  "); scanf("%d", &add->StartTime);
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                   시                         ┃\n");
+//	gotoxy(20, 10); printf("종료시간 :  "); scanf("%d", &add->EndTime);
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┃                                                              ┃\n");
+//	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//	add->next = NULL;
+//
+//	getchar();
+//
+//	if (head == NULL)
+//		head = add;// 만약 head값이 NULL값일 때 맨 앞에 값을 넣어준다
+//				   //else if()
+//				   //{
+//				   //   사용자가 입력한 예약 시간 정보 중복되는지 확인.
+//				   //}
+//	else
+//	{
+//		p = head;// head가 가르키는 주소값을 p도 동일하게 가르킨다
+//		while (p->next != NULL)
+//		{
+//			if ((add->StartTime == p->StartTime || add->EndTime == p->EndTime) && add->Ground == p->Ground)
+//			{
+//				printf("이미 예약된 구장입니다. 다시 예약해주세요.\n");
+//				getchar();
+//				User();
+//			}
+//			else
+//				p = p->next;
+//		}
+//		p->next = add;
+//	}
+//	printf("예약이 완료되었습니다.\n");
+//	getchar(); //화면을 깨끗히 지우기 전 사용자에게 2초간 보여질수 있도록 딜레이 한다.
+//	system("cls");
+//
+//}
+//
+//void User_check()
+//{
+//	system("cls");
+//	printf("                      <  예 약 현 황 >                              \n");
+//	printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+//	for (p = head; p != NULL; p = p->next)
+//	{
+//		if (p->Ground == 1)
+//			strcpy(g_print, "풋살A");
+//		else if (p->Ground == 2)
+//			strcpy(g_print, "풋살B");
+//		else if (p->Ground == 3)
+//			strcpy(g_print, "축구장");
+//		else
+//			strcpy(g_print, "야구장");
+//		printf("이름 : %s   동아리명 : %s  구장정보 : %s   예약시간 : %d,%d\n", p->Name, p->Club, g_print, p->StartTime, p->EndTime);
+//	}
+//	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+//	getchar(); //화면을 깨끗히 지우기 전 사용자에게 3초간 보여질수 있도록 딜레이 한다.
+//
+//}
+//UINT __stdcall StartTimer(LPVOID lpVoid)
+//{
+//	// 시스템 시작 시 구동 될 시간함수
+//	system("title 현재 시간");
+//	char nowtime[30];
+//	char *t1 = "시", *t2 = "분", *t3 = "초";
+//	while (1) {
+//		Sleep(1000);  // 딜레이 함수  0.1 초
+//		second++;
+//
+//		if (second == 60)  // 60초 = 1분
+//		{
+//			minitue++;
+//			second = 0;
+//		}
+//
+//		if (minitue == 60) // 60분 = 1시간
+//		{
+//			hour++;
+//			minitue = 0;
+//
+//		}
+//		if (hour == 24) return 0;
+//		sprintf(nowtime, "title 현재 시간 %d%s %d%s %d%s", hour, t1, minitue, t2, second, t3);
+//		system(nowtime);
+//
+//	}
+//}
+//
+//int gotoxy(int x, int y) //x,y 위치로 draw위치 변경
+//{
+//	if (consoleHandler == INVALID_HANDLE_VALUE)
+//		return 0;
+//
+//	COORD coords = { static_cast<short>(x), static_cast<short>(y) };
+//	SetConsoleCursorPosition(consoleHandler, coords);
+//
+//	return 1;
+//}
+//
+//
+////void User_notify()
+////{
+////   PRO *move = NULL;//움직일 포인터변수
+////   PRO *link = NULL;//맨 앞을 가르킬 포인터 변수
+////   PRO *rear = NULL;//뒤따라올 포인터변수
+////   system("cls");
+////   printf("                      <  공 지 사 항 >                            \n");
+////   printf("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+////   for (move = link; move != NULL; move = move->next)
+////   {
+////      printf(" 공지 : %10s                                              \n", move->title);
+////      printf(" 내용    : %10s                                               \n", move->content);
+////   }
+////   printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+////   Sleep(3000);
+////   User();
+////}
